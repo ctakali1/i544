@@ -26,7 +26,7 @@ function handleHeaders(specs,bytes){
       var ImagearrayBuffer = bytes.images.buffer.slice(i,i+4);                //Slicing an array in a group of 4
       var Imagebit32int=(new DataView(ImagearrayBuffer)).getInt32();
       if(Object.values(header)[i/4]!=undefined && Imagebit32int != Object.values(header)[i/4]){
-        return err('BAD_VAL');                                                //return err
+        return err('image bytes values not matching',{ code: 'BAD_VAL' });                                                //return err
       }
       i+=3;
     }
