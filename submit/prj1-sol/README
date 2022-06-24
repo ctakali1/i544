@@ -8,4 +8,5 @@ Trying to implement parse_images() function.
 3. Keeping the remaining Uint8Array number in RestArray
 4. Returning ok or err based on the test cases.
 
-knn() not iimplemented.
+trying to implement knn()
+1. Checking length of the train and test features.
