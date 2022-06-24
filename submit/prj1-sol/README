@@ -2,5 +2,10 @@ Name:		Chaitanya Takalikar
 B-Number:	B00922838
 Email:		ctakali1@binghamton.edu
 
-Add text here as needed.
+Trying to implement parse_images() function.
+1. Converted the image bytes to the integers.
+2. Checking converted integers with the header specs and then only adding in Headers array.
+3. Keeping the remaining Uint8Array number in RestArray
+4. Returning ok or err based on the test cases.
 
+knn() not iimplemented.
