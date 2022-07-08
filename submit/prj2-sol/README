@@ -3,4 +3,9 @@ B-Number:	B00922838
 Email:		ctakali1@binghamton.edu
 
 Project Started.
+5 Test cases are pass succesfully(sometimes 6 test cases pass)
+    :Add functionality executed successfully returning unique id.
+    :Passing few Retrieval test cases.
+    :Returning NOT_FOUND errors for incorrect ids
+
 
