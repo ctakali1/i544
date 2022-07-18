@@ -24,18 +24,23 @@ export default async function serve(knnConfig, dao, data) {
     const app = express();
 
     //TODO: squirrel away knnConfig params and dao in app.locals.
-
+    app.locals.base=knnConfig.base;
+    app.locals.dao=dao;
+    // app.locals.base = '/auth';
 
     if (data) {
       //TODO: load data into dao
-
+      await dao.clear();
+      for(var i=0;i<data.length;i++){
+        await dao.add(data[i].features,false,data[i].label);
+      }
     }
 
     //TODO: get all training results from dao and squirrel away in app.locals
-
+    var result=await dao.getAllTrainingFeatures();
+    app.locals.trainingFeatures=result.val;
     //set up routes
     setupRoutes(app);
-
     return ok(app);
   }
   catch (e) {
@@ -43,23 +48,25 @@ export default async function serve(knnConfig, dao, data) {
   }
 }
 
-
 function setupRoutes(app) {
   const base = app.locals.base;
   app.use(cors({exposedHeaders: 'Location'}));
   app.use(express.json({strict: false})); //false to allow string body
-  //app.use(express.text());
+  app.use(express.text());
 
   //uncomment to log requested URLs on server stderr
-  //app.use(doLogRequest(app));
+  app.use(doLogRequest(app));
 
   //TODO: add knn routes here
+  app.post(`${base}/images`,doPostData(app));
+  app.get(`${base}/labels/:id?k=K`,doGetClassifiedLabels(app));
+  app.get(`${base}/images/:id`,doGetImages(app));
+  // app.get(`${base}`,dummyHandler(app));
 
   //must be last
   app.use(do404(app));
   app.use(doErrors(app));
 }
-
 
 //dummy handler to test initial routing and to use as a template
 //for real handlers.  Remove on project completion.
@@ -76,7 +83,49 @@ function dummyHandler(app) {
 }
 
 //TODO: add real handlers
+function doPostData(app) {
+  return async function(req, res) {
+    try {
+      var img=req.body;
+      var resp = await app.locals.dao.add(img , true,'');
+      res.send({id:resp.val})
+    } catch (err) {
+      const mapped = mapResultErrors(err);
+      res.status(mapped.status).json(mapped);      
+    }
+  };
+}
 
+function doGetClassifiedLabels(app) {
+  return async function(req, res) {
+    console.log(req)
+    try {
+      var trainResult = await app.locals.dao.get(req.params.id);
+      if(trainResult.hasErrors) throw trainResult;
+      // var trainData=await app.locals.dao.getAllTrainingFeatures();
+      // var result=await knn(req.params.features,trainData.label);
+      res.send({id: trainResult.val.index,label:trainResult.val.label});
+    }
+    catch(err) {
+      const mapped = mapResultErrors(err);
+      res.status(mapped.status).json(mapped);
+    }
+  };
+}
+
+function doGetImages(app) {
+  return async function(req, res) {
+    try {
+      var result = await app.locals.dao.get(req.params.id);
+      if(result.hasErrors) throw result;
+      res.send({features: uint8ArrayToB64(result.val.features),label:result.val.label});
+    }
+    catch(err) {
+      const mapped = mapResultErrors(err);
+      res.status(mapped.status).json(mapped);
+    }
+  };
+}
 
 /** Handler to log current request URL on stderr and transfer control
  *  to next handler in handler chain.
@@ -144,11 +193,15 @@ function getHttpStatus(errors) {
   return status ?? STATUS.BAD_REQUEST;
 }
 
-/** Map domain/internal errors into suitable HTTP errors.  Return'd
- *  object will have a "status" property corresponding to HTTP status
- *  code.
- */
-function mapResultErrors(err) {
+/** Map domain/internal errors into suitable HTTP errors.  Usually,
+  * the err argument should be a Result; if not, this functions makes
+  * a best attempt to come up with reasonable error messsages.
+  * Return'd object will have a "status" property corresponding to
+  * HTTP status code.
+  */
+ function mapResultErrors(err) {
+  //if Error, then dump as much info as possible to help debug cause of problem
+  if (err instanceof Error) console.error(err); 
   const errors = err.errors ?? [ { message: err.message ?? err.toString() } ];
   const status = getHttpStatus(errors);
   if (status === STATUS.INTERNAL_SERVER_ERROR)  console.error(errors);
