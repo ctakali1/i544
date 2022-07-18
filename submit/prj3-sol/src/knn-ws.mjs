@@ -20,31 +20,33 @@ export const DEFAULT_COUNT = 5;
  *  Types described in knn-ws.d.ts
  */
 export default async function serve(knnConfig, dao, data) {
-  // console.log(data.length)
   try {
     const app = express();
 
     //TODO: squirrel away knnConfig params and dao in app.locals.
-    app.locals.knnConfig=knnConfig;
+    app.locals.base=knnConfig.base;
     app.locals.dao=dao;
+    // app.locals.base = '/auth';
 
-    if (data.length > 0) {
+    if (data) {
       //TODO: load data into dao
-      dao.data=uint8ArrayToB64(data);
+      await dao.clear();
+      for(var i=0;i<data.length;i++){
+        await dao.add(data[i].features,false,data[i].label);
+      }
     }
 
     //TODO: get all training results from dao and squirrel away in app.locals
-    app.locals.data=dao.data;
+    var result=await dao.getAllTrainingFeatures();
+    app.locals.trainingFeatures=result.val;
     //set up routes
     setupRoutes(app);
-
     return ok(app);
   }
   catch (e) {
     return err(e.toString(), { code: 'INTERNAL' }); 
   }
 }
-
 
 function setupRoutes(app) {
   const base = app.locals.base;
@@ -57,15 +59,14 @@ function setupRoutes(app) {
 
   //TODO: add knn routes here
   app.post(`${base}/images`,doPostData(app));
-  app.get(`${base}/labels/:userId?k=K`,doGetClassifiedLabels(app));
-  app.get(`${base}/images/:userId`,doGetImages(app));
-  app.get(`${base}`,dummyHandler(app));
+  app.get(`${base}/labels/:id?k=K`,doGetClassifiedLabels(app));
+  app.get(`${base}/images/:id`,doGetImages(app));
+  // app.get(`${base}`,dummyHandler(app));
 
   //must be last
   app.use(do404(app));
   app.use(doErrors(app));
 }
-
 
 //dummy handler to test initial routing and to use as a template
 //for real handlers.  Remove on project completion.
@@ -83,40 +84,47 @@ function dummyHandler(app) {
 
 //TODO: add real handlers
 function doPostData(app) {
-  return (async function(req, res) {
+  return async function(req, res) {
     try {
-      app.locals.model.
-      res.json({status: 'TODO'});
-    }
-    catch(err) {
+      var img=req.body;
+      var resp = await app.locals.dao.add(img , true,'');
+      res.send({id:resp.val})
+    } catch (err) {
       const mapped = mapResultErrors(err);
-      res.status(mapped.status).json(mapped);
+      res.status(mapped.status).json(mapped);      
     }
-  });
+  };
 }
 
 function doGetClassifiedLabels(app) {
-  return (async function(req, res) {
+  return async function(req, res) {
+    console.log(req)
     try {
-      res.json({status: 'TODO'});
+      var trainResult = await app.locals.dao.get(req.params.id);
+      if(trainResult.hasErrors) throw trainResult;
+      // var trainData=await app.locals.dao.getAllTrainingFeatures();
+      // var result=await knn(req.params.features,trainData.label);
+      res.send({id: trainResult.val.index,label:trainResult.val.label});
     }
     catch(err) {
       const mapped = mapResultErrors(err);
       res.status(mapped.status).json(mapped);
     }
-  });
+  };
 }
 
 function doGetImages(app) {
-  return (async function(req, res) {
+  return async function(req, res) {
     try {
-      res.json({status: 'TODO'});
+      var result = await app.locals.dao.get(req.params.id);
+      if(result.hasErrors) throw result;
+      res.send({features: uint8ArrayToB64(result.val.features),label:result.val.label});
     }
     catch(err) {
       const mapped = mapResultErrors(err);
       res.status(mapped.status).json(mapped);
     }
-  });
+  };
 }
 
 /** Handler to log current request URL on stderr and transfer control
