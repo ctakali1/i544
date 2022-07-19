@@ -6,7 +6,7 @@ import STATUS from 'http-status';
 
 import { ok, err } from 'cs544-js-utils';
 import { knn } from 'prj1-sol';
-import { uint8ArrayToB64, b64ToUint8Array } from 'prj2-sol';
+import { uint8ArrayToB64, b64ToUint8Array, makeFeaturesDao } from 'prj2-sol';
 
 import fs from 'fs';
 import http from 'http';
@@ -19,27 +19,32 @@ export const DEFAULT_COUNT = 5;
  *  (wrapped within a Result).
  *  Types described in knn-ws.d.ts
  */
-export default async function serve(knnConfig, dao, data) {
+export default async function serve(knnConfig , dao, data) {
   try {
     const app = express();
-
     //TODO: squirrel away knnConfig params and dao in app.locals.
     app.locals.base=knnConfig.base;
-    app.locals.dao=dao;
+    app.locals.k=knnConfig.k;
+    // console.log("string ",makeFeaturesDao(dao._client.s.url))
+    app.locals.dao= await makeFeaturesDao(dao._client.s.url);
+    // console.log("1")
     // app.locals.base = '/auth';
 
     if (data) {
       //TODO: load data into dao
-      await dao.clear();
+      await app.locals.dao.val.clear();
       for(var i=0;i<data.length;i++){
-        await dao.add(data[i].features,false,data[i].label);
+        await app.locals.dao.val.add(data[i].features,false,data[i].label);
       }
     }
+    // console.log("2")
+    // console.log("3",dao.getAllTrainingFeatures())
 
     //TODO: get all training results from dao and squirrel away in app.locals
-    var result=await dao.getAllTrainingFeatures();
-    app.locals.trainingFeatures=result.val;
+    app.locals.dao.trainingFeatures=await app.locals.dao.val.getAllTrainingFeatures();
     //set up routes
+    // console.log("5",app.locals.dao.val)
+
     setupRoutes(app);
     return ok(app);
   }
@@ -59,13 +64,14 @@ function setupRoutes(app) {
 
   //TODO: add knn routes here
   app.post(`${base}/images`,doPostData(app));
-  app.get(`${base}/labels/:id?k=K`,doGetClassifiedLabels(app));
   app.get(`${base}/images/:id`,doGetImages(app));
+  app.get(`${base}/labels/:id?k=K`,doGetClassifiedLabels(app));
   // app.get(`${base}`,dummyHandler(app));
 
   //must be last
   app.use(do404(app));
   app.use(doErrors(app));
+
 }
 
 //dummy handler to test initial routing and to use as a template
@@ -86,9 +92,11 @@ function dummyHandler(app) {
 function doPostData(app) {
   return async function(req, res) {
     try {
-      var img=req.body;
-      var resp = await app.locals.dao.add(img , true,'');
-      res.send({id:resp.val})
+      if(req.body){
+        var imageBody=req.body;
+        var response = await app.locals.dao.val.add(imageBody,true);
+        res.send({id:response.val})
+      }
     } catch (err) {
       const mapped = mapResultErrors(err);
       res.status(mapped.status).json(mapped);      
@@ -97,14 +105,14 @@ function doPostData(app) {
 }
 
 function doGetClassifiedLabels(app) {
+  // console.log("in function")  
   return async function(req, res) {
-    console.log(req)
-    try {
-      var trainResult = await app.locals.dao.get(req.params.id);
-      if(trainResult.hasErrors) throw trainResult;
-      // var trainData=await app.locals.dao.getAllTrainingFeatures();
-      // var result=await knn(req.params.features,trainData.label);
-      res.send({id: trainResult.val.index,label:trainResult.val.label});
+    try {    
+      console.log('in try')
+      var k=req.query.k;
+      var features = await app.locals.dao.val.get(req.params.id);
+      var result = knn(b64ToUint8Array(features.val.features), app.locals.dao.trainingFeatures,k);
+      res.send({ id: req.params.id, label: result.val[0] })
     }
     catch(err) {
       const mapped = mapResultErrors(err);
@@ -116,9 +124,11 @@ function doGetClassifiedLabels(app) {
 function doGetImages(app) {
   return async function(req, res) {
     try {
-      var result = await app.locals.dao.get(req.params.id);
-      if(result.hasErrors) throw result;
-      res.send({features: uint8ArrayToB64(result.val.features),label:result.val.label});
+      if(req.params.id){
+        var getImageData = await app.locals.dao.val.get(req.params.id);
+        if(getImageData.hasErrors) throw getImageData;
+        res.send({features: uint8ArrayToB64(getImageData.val.features),label:getImageData.val.label});
+      }
     }
     catch(err) {
       const mapped = mapResultErrors(err);
