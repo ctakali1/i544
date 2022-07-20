@@ -24,10 +24,7 @@ export default async function serve(knnConfig , dao, data) {
     const app = express();
     //TODO: squirrel away knnConfig params and dao in app.locals.
     app.locals.base=knnConfig.base;
-    app.locals.k=knnConfig.k;
-    // console.log("string ",makeFeaturesDao(dao._client.s.url))
     app.locals.dao= await makeFeaturesDao(dao._client.s.url);
-    // console.log("1")
     // app.locals.base = '/auth';
 
     if (data) {
@@ -37,14 +34,11 @@ export default async function serve(knnConfig , dao, data) {
         await app.locals.dao.val.add(data[i].features,false,data[i].label);
       }
     }
-    // console.log("2")
-    // console.log("3",dao.getAllTrainingFeatures())
 
     //TODO: get all training results from dao and squirrel away in app.locals
-    app.locals.dao.trainingFeatures=await app.locals.dao.val.getAllTrainingFeatures();
+    app.locals.trainingFeatures=await app.locals.dao.val.getAllTrainingFeatures();
+    
     //set up routes
-    // console.log("5",app.locals.dao.val)
-
     setupRoutes(app);
     return ok(app);
   }
@@ -64,8 +58,8 @@ function setupRoutes(app) {
 
   //TODO: add knn routes here
   app.post(`${base}/images`,doPostData(app));
+  app.get(`${base}/labels/:id`,doGetClassifiedLabels(app));
   app.get(`${base}/images/:id`,doGetImages(app));
-  app.get(`${base}/labels/:id?k=K`,doGetClassifiedLabels(app));
   // app.get(`${base}`,dummyHandler(app));
 
   //must be last
@@ -95,7 +89,8 @@ function doPostData(app) {
       if(req.body){
         var imageBody=req.body;
         var response = await app.locals.dao.val.add(imageBody,true);
-        res.send({id:response.val})
+        var id=response.val;
+        res.json({id:id})
       }
     } catch (err) {
       const mapped = mapResultErrors(err);
@@ -105,14 +100,17 @@ function doPostData(app) {
 }
 
 function doGetClassifiedLabels(app) {
-  // console.log("in function")  
   return async function(req, res) {
     try {    
-      console.log('in try')
       var k=req.query.k;
-      var features = await app.locals.dao.val.get(req.params.id);
-      var result = knn(b64ToUint8Array(features.val.features), app.locals.dao.trainingFeatures,k);
-      res.send({ id: req.params.id, label: result.val[0] })
+      var features = await app.locals.dao.val.get(req.params.id,true);
+      if(features.hasErrors) {throw features;}
+      var testingFeatures=b64ToUint8Array( features.val.features)
+      var result = knn(testingFeatures, app.locals.trainingFeatures.val,k);
+      if(result.hasErrors) {throw result;}
+      var label=result.val[0];
+      var id=result.val[1].toString();
+      res.json({ label: label, id: id })
     }
     catch(err) {
       const mapped = mapResultErrors(err);
@@ -125,9 +123,11 @@ function doGetImages(app) {
   return async function(req, res) {
     try {
       if(req.params.id){
-        var getImageData = await app.locals.dao.val.get(req.params.id);
+        var getImageData = await app.locals.dao.val.get(req.params.id,true);
         if(getImageData.hasErrors) throw getImageData;
-        res.send({features: uint8ArrayToB64(getImageData.val.features),label:getImageData.val.label});
+        var features=getImageData.val.features;
+        var label=getImageData.val.label;
+        res.json({features: features,label:label});
       }
     }
     catch(err) {
