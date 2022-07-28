@@ -32,6 +32,8 @@ const ZOOM = 10;
 //the value selected from each RGBA pixel depends on it being blue.
 const FG_COLOR = 'blue';
 
+const c=console.log;
+
 class DigitImageRecognizer extends HTMLElement {
   constructor() {
     super();
@@ -70,54 +72,63 @@ class DigitImageRecognizer extends HTMLElement {
     ctx.lineWidth = 1;
 
     /** set up an event handler for the clear button being clicked */
-    //TODO
+    shadow.querySelector('#clear').addEventListener('click',() => this.resetApp(shadow,ctx));
 
     /** set up an event handler for the recognize button being clicked. */
-    //TODO
+    shadow.querySelector('#recognize').addEventListener('click',() => this.recognize(this.ctx));
 
-    /** set up an event handler for the pen-width being changed. */
-    //TODO
+    shadow.querySelector('#pen-width').addEventListener('change',() => {
+      this.DRAW.width= shadow.querySelector('#pen-width').value;
+    });
 
-    /** true if the mouse button is currently pressed within the canvas */
-    let mouseDown = false;
+    let mouseDown = false;/** true if the mouse button is currently pressed within the canvas */
 
     /** the last {x, y} point within the canvas where the mouse was
-     *  detected with its button pressed. In logical canvas
-     *  coordinates.
-     */
+     *  detected with its button pressed. In logical canvas coordinates.*/
     let last = { x: 0, y: 0 };
 
-    /** set up an event handler for the mouse button being pressed within
-     *  the canvas.
-     */
-    //TODO
-
+    /** set up an event handler for the mouse button being pressed within the canvas.*/
+     shadow.querySelector('#img-canvas').addEventListener('mousedown',(ev) => {
+      mouseDown=true;
+        last=eventCanvasCoord(canvas,ev);
+     });
     
-    /** set up an event handler for the mouse button being moved within
-     *  the canvas.  
-     */
-    //TODO
+    /** set up an event handler for the mouse button being moved within the canvas.*/
+    shadow.querySelector('#img-canvas').addEventListener('mousemove', (ev) => {
+      if(mouseDown === true){
+        draw(ctx,last,eventCanvasCoord(canvas,ev));
+      }
+    });
 
-    /** set up an event handler for the mouse button being released within
-     *  the canvas.
-     */
-    //TODO
+    /** set up an event handler for the mouse button being released within the canvas.*/
+     shadow.querySelector('#img-canvas').addEventListener('mouseup', (ev) => {
+      if(mouseDown === true){
+        draw(ctx,last,eventCanvasCoord(canvas,ev));
+        last.x=0;
+        last.y=0;
+        mouseDown=false;
+      }
+    });
 
-    /** set up an event handler for the mouse button being moved off
-     *  the canvas.
-     */
-    //TODO
+    /** set up an event handler for the mouse button being moved off the canvas.*/
+     shadow.querySelector('#img-canvas').addEventListener('mouseout', () => {
+      // last.x=0;
+      // last.y=0;
+      mouseDown=false
+     });
 
     /** Create a new KnnWsClient instance in this */
-    //TODO
+    const knnObject=new makeKnnWsClient(this.getAttribute('ws-url'));
 
   }
 
   /** Clear canvas specified by graphics context ctx and any
    *  previously determined label 
    */
-  resetApp(ctx)  {
-    console.log('TODO resetApp()');
+  resetApp(shadow,ctx)  {
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    ctx.beginPath();
+    shadow.querySelector('#knn-label').innerHTML="";
   }
 
   /** Label the image in the canvas specified by canvas corresponding
@@ -126,7 +137,8 @@ class DigitImageRecognizer extends HTMLElement {
    *  area of the app.  Display any errors encountered.
    */
   async recognize(ctx) {
-    console.log('TODO recognize()');
+    // console.log('TODO recognize()');
+    c('type ',typeof(canvasToMnistB64(ctx)))
   }
 
   /** given a result for which hasErrors is true, report all errors 
@@ -143,7 +155,11 @@ class DigitImageRecognizer extends HTMLElement {
 
 /** Draw a line from {x, y} point pt0 to {x, y} point pt1 in ctx */
 function draw(ctx, pt0, pt1) {
-  //TODO
+  ctx.beginPath();
+  ctx.moveTo(pt0.x,pt0.y);
+  ctx.lineTo(pt1.x,pt1.y);
+  ctx.stroke();
+  ctx.closePath();
 }
 	
 /** Returns the {x, y} coordinates of event ev relative to canvas in

@@ -6,7 +6,7 @@ export default function makeKnnWsClient(wsUrl) {
 
 class KnnWsClient {
   constructor(wsUrl) {
-    //TODO
+    this.wsUrl=wsUrl;
   }
 
   /** Given a base64 encoding b64Img of an MNIST compatible test
