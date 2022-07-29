@@ -21,7 +21,16 @@ class KnnWsClient {
    *  error Result.
    */
   async classify(b64Img) {
-    //TODO
+    if(b64Img==='') return;
+    const result=await
+    (await fetch(this.wsUrl+'/knn/images', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(b64Img)
+    })).json();
+    return result;
   }
 
   /** Return a Result containing the base-64 representation of
@@ -38,7 +47,14 @@ class KnnWsClient {
    *  error Result.
    */
   async getImage(imageId) {
-    //TODO
+    // const result=await
+    // (await fetch(this.wsUrl+`/knn/${imageId}`, {
+    //   method: 'GET'
+    // })).json();
+    // console.log('label is : ',result)
+    // return result;
+    const res=await(await fetch(this.wsUrl+`/knn/labels/${imageId}`)).json();
+    return res;
   }
 
   /** convert an erroneous JSON web service response to an error Result. */

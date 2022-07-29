@@ -17,6 +17,7 @@
     centered on the center of the MNIST grid.
 
 */
+//https://bearnithi.com/2019/12/12/understanding-canvas-draw-a-line-in-canvas-using-mouse-and-touch-events-in-javascript/
 
 import makeKnnWsClient from './knn-ws-client.mjs';
 import canvasToMnistB64 from './canvas-to-mnist-b64.mjs';
@@ -27,6 +28,7 @@ const DRAW = { width: 20, height: 20 };
 
 //canvas is zoomed by this factor
 const ZOOM = 10;
+let caller;
 
 //color used for drawing digits; this cannot be changed arbitrarily as
 //the value selected from each RGBA pixel depends on it being blue.
@@ -48,7 +50,6 @@ class DigitImageRecognizer extends HTMLElement {
   attributeChangedCallback(name, _oldValue, newValue) {
     //TODO
   }
-
 
   /** Initialize canvas attributes, set up event handlers and attach a
    *  knn web services client for wsUrl to this.  Note that the
@@ -75,10 +76,10 @@ class DigitImageRecognizer extends HTMLElement {
     shadow.querySelector('#clear').addEventListener('click',() => this.resetApp(shadow,ctx));
 
     /** set up an event handler for the recognize button being clicked. */
-    shadow.querySelector('#recognize').addEventListener('click',() => this.recognize(this.ctx));
+    shadow.querySelector('#recognize').addEventListener('click',() => this.recognize(shadow,ctx));
 
     shadow.querySelector('#pen-width').addEventListener('change',() => {
-      this.DRAW.width= shadow.querySelector('#pen-width').value;
+      ctx.lineWidth= shadow.querySelector('#pen-width').value;
     });
 
     let mouseDown = false;/** true if the mouse button is currently pressed within the canvas */
@@ -89,37 +90,37 @@ class DigitImageRecognizer extends HTMLElement {
 
     /** set up an event handler for the mouse button being pressed within the canvas.*/
      shadow.querySelector('#img-canvas').addEventListener('mousedown',(ev) => {
+      last=eventCanvasCoord(canvas,ev);
       mouseDown=true;
-        last=eventCanvasCoord(canvas,ev);
      });
     
     /** set up an event handler for the mouse button being moved within the canvas.*/
     shadow.querySelector('#img-canvas').addEventListener('mousemove', (ev) => {
-      if(mouseDown === true){
-        draw(ctx,last,eventCanvasCoord(canvas,ev));
-      }
+      // if(mouseDown === true){
+      if(!mouseDown) return;
+      // this.resetApp(shadow,ctx)
+      draw(this.ctx,last,eventCanvasCoord(canvas,ev));
+      // }
     });
 
     /** set up an event handler for the mouse button being released within the canvas.*/
      shadow.querySelector('#img-canvas').addEventListener('mouseup', (ev) => {
-      if(mouseDown === true){
-        draw(ctx,last,eventCanvasCoord(canvas,ev));
-        last.x=0;
-        last.y=0;
-        mouseDown=false;
-      }
+      // if(mouseDown === true){
+      if(!mouseDown) return;
+      draw(this.ctx,eventCanvasCoord(canvas,ev),last);
+      last.x=0;
+      last.y=0;
+      mouseDown=false;
     });
 
     /** set up an event handler for the mouse button being moved off the canvas.*/
      shadow.querySelector('#img-canvas').addEventListener('mouseout', () => {
-      // last.x=0;
-      // last.y=0;
       mouseDown=false
      });
 
     /** Create a new KnnWsClient instance in this */
-    const knnObject=new makeKnnWsClient(this.getAttribute('ws-url'));
-
+    caller = new makeKnnWsClient(this.getAttribute('ws-url'));
+    
   }
 
   /** Clear canvas specified by graphics context ctx and any
@@ -136,9 +137,13 @@ class DigitImageRecognizer extends HTMLElement {
    *  services to label the image.  Display the label in the result
    *  area of the app.  Display any errors encountered.
    */
-  async recognize(ctx) {
-    // console.log('TODO recognize()');
-    c('type ',typeof(canvasToMnistB64(ctx)))
+  async recognize(shadow,ctx) {
+    const b64=canvasToMnistB64(ctx);
+    // shadow.querySelector('#knn-label').innerHTML='classifying';
+    // caller['getImage']=
+    var id=(await (caller['classify'](b64))).id;
+    var label=(await (caller['getImage'](id))).label;
+    shadow.querySelector('#knn-label').innerHTML=label;
   }
 
   /** given a result for which hasErrors is true, report all errors 

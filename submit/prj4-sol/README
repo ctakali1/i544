@@ -2,5 +2,7 @@ Name:		Chaitanya Takalikar
 B-Number:	B00922838
 Email:		ctakali1@binghamton.edu
 
-Project 4 started again
-
+Project 4 started
+Almost all Events handled. Needs some more attention as center of mass is being shifted.
+WS is being used
+Knn labelling done. digit shown in the classified field area. Needs to handle exception.
