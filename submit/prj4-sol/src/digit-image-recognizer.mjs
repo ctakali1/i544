@@ -18,6 +18,7 @@
 
 */
 //https://bearnithi.com/2019/12/12/understanding-canvas-draw-a-line-in-canvas-using-mouse-and-touch-events-in-javascript/
+//https://jsfiddle.net/richardcwc/d2gxjdva/
 
 import makeKnnWsClient from './knn-ws-client.mjs';
 import canvasToMnistB64 from './canvas-to-mnist-b64.mjs';
@@ -96,16 +97,14 @@ class DigitImageRecognizer extends HTMLElement {
     
     /** set up an event handler for the mouse button being moved within the canvas.*/
     shadow.querySelector('#img-canvas').addEventListener('mousemove', (ev) => {
-      // if(mouseDown === true){
       if(!mouseDown) return;
-      // this.resetApp(shadow,ctx)
       draw(this.ctx,last,eventCanvasCoord(canvas,ev));
-      // }
+      last.x=eventCanvasCoord(canvas,ev)['x'];
+      last.y=eventCanvasCoord(canvas,ev)['y'];
     });
 
     /** set up an event handler for the mouse button being released within the canvas.*/
      shadow.querySelector('#img-canvas').addEventListener('mouseup', (ev) => {
-      // if(mouseDown === true){
       if(!mouseDown) return;
       draw(this.ctx,eventCanvasCoord(canvas,ev),last);
       last.x=0;
@@ -114,7 +113,7 @@ class DigitImageRecognizer extends HTMLElement {
     });
 
     /** set up an event handler for the mouse button being moved off the canvas.*/
-     shadow.querySelector('#img-canvas').addEventListener('mouseout', () => {
+     shadow.querySelector('#img-canvas').addEventListener('mouseleave', () => {
       mouseDown=false
      });
 
@@ -139,11 +138,14 @@ class DigitImageRecognizer extends HTMLElement {
    */
   async recognize(shadow,ctx) {
     const b64=canvasToMnistB64(ctx);
-    // shadow.querySelector('#knn-label').innerHTML='classifying';
-    // caller['getImage']=
     var id=(await (caller['classify'](b64))).id;
     var label=(await (caller['getImage'](id))).label;
-    shadow.querySelector('#knn-label').innerHTML=label;
+    if(label>0){
+      shadow.querySelector('#knn-label').innerHTML=label;
+    }else{
+      shadow.querySelector('#knn-label').innerHTML='failed to fetch';
+    }
+
   }
 
   /** given a result for which hasErrors is true, report all errors 
@@ -164,7 +166,7 @@ function draw(ctx, pt0, pt1) {
   ctx.moveTo(pt0.x,pt0.y);
   ctx.lineTo(pt1.x,pt1.y);
   ctx.stroke();
-  ctx.closePath();
+  // ctx.closePath();
 }
 	
 /** Returns the {x, y} coordinates of event ev relative to canvas in
