@@ -33,7 +33,8 @@ class KnnWsClient {
       })).json();
       return result; 
     } catch (error) {
-      return error;
+      let resp=error.message;
+      throw resp;
     }
   }
 
@@ -55,7 +56,8 @@ class KnnWsClient {
       const res=await(await fetch(this.wsUrl+`/knn/labels/${imageId}`)).json();
       return res; 
     } catch (error) {
-      return error;
+      let resp=JSON.parse(error);
+      throw resp;
     }
   }
 
