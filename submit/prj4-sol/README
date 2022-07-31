@@ -3,6 +3,7 @@ B-Number:	B00922838
 Email:		ctakali1@binghamton.edu
 
 Project 4 started
-All Events handled(in mousedown event, updated the last variables with the latest mouse traced variables)
-WS are being consumed.
-Knn labelling done. Digit shown in the classified field area. Needs to handle exception and show friendly message to the user.
+All Events handled(mousein, mousedown, mousemove, mouseleave,mouseup event, updated the last variables with the latest mouse traced variables)
+Web Services are being consumed successfully with proper result or error.
+Knn labelling done. Digit shown in the classified field area. handled exception and shown message in the UI.
+If classify is clicked while canvas is empty then message is shown to draw some digit.
