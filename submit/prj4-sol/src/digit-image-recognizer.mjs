@@ -49,7 +49,7 @@ class DigitImageRecognizer extends HTMLElement {
 
   static get observedAttributes() { return ['ws-url']; }
   attributeChangedCallback(name, _oldValue, newValue) {
-    //TODO
+    caller = new makeKnnWsClient(this.getAttribute('ws-url'));
   }
 
   /** Initialize canvas attributes, set up event handlers and attach a
@@ -98,6 +98,8 @@ class DigitImageRecognizer extends HTMLElement {
     /** set up an event handler for the mouse button being moved within the canvas.*/
     shadow.querySelector('#img-canvas').addEventListener('mousemove', (ev) => {
       if(!mouseDown) return;
+      shadow.querySelector('#knn-label').innerHTML="";
+      shadow.querySelector('#errors').innerHTML="";
       draw(this.ctx,last,eventCanvasCoord(canvas,ev));
       last.x=eventCanvasCoord(canvas,ev)['x'];
       last.y=eventCanvasCoord(canvas,ev)['y'];
@@ -129,6 +131,7 @@ class DigitImageRecognizer extends HTMLElement {
     ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
     ctx.beginPath();
     shadow.querySelector('#knn-label').innerHTML="";
+    shadow.querySelector('#errors').innerHTML="";
   }
 
   /** Label the image in the canvas specified by canvas corresponding
@@ -137,15 +140,20 @@ class DigitImageRecognizer extends HTMLElement {
    *  area of the app.  Display any errors encountered.
    */
   async recognize(shadow,ctx) {
-    const b64=canvasToMnistB64(ctx);
-    var id=(await (caller['classify'](b64))).id;
-    var label=(await (caller['getImage'](id))).label;
-    if(label>0){
+    shadow.querySelector('#knn-label').innerHTML="";
+    shadow.querySelector('#errors').innerHTML="";
+    try {
+      const b64=canvasToMnistB64(ctx);
+      if(!(/[B-Z]/.test(b64))) {
+        this.reportErrors({errors:[{message:'please draw digit before classifying' }]});
+        return;
+      }
+      var id=(await (caller['classify'](b64))).id;
+      var label=(await (caller['getImage'](id))).label;
       shadow.querySelector('#knn-label').innerHTML=label;
-    }else{
-      shadow.querySelector('#knn-label').innerHTML='failed to fetch';
+    } catch (error) {
+      shadow.querySelector('#errors').innerHTML=`<li>${error}</li>`;
     }
-
   }
 
   /** given a result for which hasErrors is true, report all errors 
@@ -166,7 +174,7 @@ function draw(ctx, pt0, pt1) {
   ctx.moveTo(pt0.x,pt0.y);
   ctx.lineTo(pt1.x,pt1.y);
   ctx.stroke();
-  // ctx.closePath();
+  ctx.closePath();
 }
 	
 /** Returns the {x, y} coordinates of event ev relative to canvas in
