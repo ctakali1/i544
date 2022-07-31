@@ -35,8 +35,6 @@ let caller;
 //the value selected from each RGBA pixel depends on it being blue.
 const FG_COLOR = 'blue';
 
-const c=console.log;
-
 class DigitImageRecognizer extends HTMLElement {
   constructor() {
     super();
