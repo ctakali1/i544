@@ -7,3 +7,5 @@ All Events handled(mousein, mousedown, mousemove, mouseleave,mouseup event, upda
 Web Services are being consumed successfully with proper result or error.
 Knn labelling done. Digit shown in the classified field area. handled exception and shown message in the UI.
 If classify is clicked while canvas is empty then message is shown to draw some digit.
+References: //https://bearnithi.com/2019/12/12/understanding-canvas-draw-a-line-in-canvas-using-mouse-and-touch-events-in-javascript/
+//https://jsfiddle.net/richardcwc/d2gxjdva/

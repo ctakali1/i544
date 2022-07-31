@@ -17,8 +17,6 @@
     centered on the center of the MNIST grid.
 
 */
-//https://bearnithi.com/2019/12/12/understanding-canvas-draw-a-line-in-canvas-using-mouse-and-touch-events-in-javascript/
-//https://jsfiddle.net/richardcwc/d2gxjdva/
 
 import makeKnnWsClient from './knn-ws-client.mjs';
 import canvasToMnistB64 from './canvas-to-mnist-b64.mjs';
