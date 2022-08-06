@@ -11,25 +11,30 @@ const DEFAULT_WS_URL = 'https://zdu.binghamton.edu:2345';
 export default function App(props) {
   //TODO
 
+  let caller = new makeKnnWsClient(DEFAULT_WS_URL);
+
   function ResetApp() {
     var canvas = document.getElementById("canvas");
     var context = canvas.getContext('2d');
     context.clearRect(4, 4, 292, 292);
   }
 
-  function Classify() {
+  async function Classify() {
     var canvas = document.getElementById("canvas");
     var context = canvas.getContext('2d');
     const b64 = canvasToMnistB64(context);
-    console.log("b64 ", b64)
+    // console.log("b64 ", b64)
     if (!(/[B-Z]/.test(b64))) {
-      console.log("in if")
-      // this.reportErrors({ errors: [{ message: 'please draw digit before classifying' }] });
+      // console.log("in if")
+      this.reportErrors({ errors: [{ message: 'please draw digit before classifying' }] });
       return;
     }
-    var id = (await(makeKnnWsClient['classify'](b64))).id;
-    console.log("id ", id)
-    var label = (await(makeKnnWsClient['getImage'](id))).label;
+
+    // console.log(caller);
+    debugger;
+    var id = (await (caller['classify'](b64))).id;
+    // console.log("id ", id)
+    var label = (await (caller['getImage'](id))).label;
     console.log("label ", label)
   }
 

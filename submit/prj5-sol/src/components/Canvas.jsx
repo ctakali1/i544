@@ -9,8 +9,8 @@ const Canvas = () => {
     const ZOOM = 10;
     const FG_COLOR = 'blue';
     let canvas = '';
-
-    const [isDrawing, setIsDrawing] = useState(false);
+    let last = { x: 0, y: 0 };
+    let [isDrawing, setIsDrawing] = useState(false);
 
     useEffect(() => {
         canvas = canvasRef.current;
@@ -21,36 +21,65 @@ const Canvas = () => {
         const context = canvas.getContext("2d");
         context.lineJoin = context.lineCap = "round";
         context.strokeStyle = FG_COLOR;
-        context.lineWidth = 5;
+        context.lineWidth = 1;
         contextRef.current = context;
     }, []);
 
     const startDrawing = ({ nativeEvent }) => {
-        const { offsetX, offsetY } = nativeEvent;
+        // const { offsetX, offsetY } = nativeEvent;
         var canvas = document.getElementById("canvas");
-        contextRef.current.beginPath();
-        contextRef.current.moveTo(offsetX, offsetY);
-        contextRef.current.lineTo(offsetX, offsetY);
-        contextRef.current.stroke();
-        setIsDrawing(true);
-        nativeEvent.preventDefault();
+        last = eventCanvasCoord(canvas, nativeEvent);
+        isDrawing = true;
+        setIsDrawing = true;
+        // contextRef.current.beginPath();
+        // contextRef.current.moveTo(offsetX, offsetY);
+        // contextRef.current.lineTo(offsetX, offsetY);
+        // contextRef.current.stroke();
+        // setIsDrawing(true);
+        // nativeEvent.preventDefault();
     }
 
     const draw = ({ nativeEvent }) => {
-        if (!isDrawing) {
+        if (!setIsDrawing && !isDrawing) {
             return;
         }
-        var canvas = document.getElementById("canvas");
-        console.log(eventCanvasCoord(canvas, nativeEvent))
-        const { offsetX, offsetY } = nativeEvent;
-        contextRef.current.lineTo(offsetX, offsetY);
+        var x = eventCanvasCoord(canvas, nativeEvent)['x'];
+        var y = eventCanvasCoord(canvas, nativeEvent)['y'];
+        contextRef.current.beginPath();
+        contextRef.current.moveTo(last.x, last.y);
+        contextRef.current.lineTo(x, y);
         contextRef.current.stroke();
-        nativeEvent.preventDefault();
+        contextRef.current.closePath();
+        last.x = eventCanvasCoord(canvas, nativeEvent)['x'];
+        last.y = eventCanvasCoord(canvas, nativeEvent)['y'];
+        // if (!isDrawing) {
+        //     return;
+        // }
+        // var canvas = document.getElementById("canvas");
+        // console.log(eventCanvasCoord(canvas, nativeEvent))
+        // const { offsetX, offsetY } = nativeEvent;
+        // contextRef.current.lineTo(offsetX, offsetY);
+        // contextRef.current.stroke();
+        // nativeEvent.preventDefault();
     }
 
-    const stopDrawing = () => {
+    const stopDrawing = ({ nativeEvent }) => {
+        if (!setIsDrawing && !isDrawing) {
+            return;
+        }
+        var x = eventCanvasCoord(canvas, nativeEvent)['x'];
+        var y = eventCanvasCoord(canvas, nativeEvent)['y'];
+        contextRef.current.beginPath();
+        contextRef.current.moveTo(x, y);
+        contextRef.current.lineTo(last.x, last.y);
+        contextRef.current.stroke();
         contextRef.current.closePath();
-        setIsDrawing(false);
+        last.x = 0;
+        last.y = 0;
+        setIsDrawing = false;
+        isDrawing = false;
+        // contextRef.current.closePath();
+        // setIsDrawing(false);
     }
 
     const eventCanvasCoord = (canvas, ev) => {
