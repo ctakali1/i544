@@ -8,7 +8,7 @@ const Canvas = () => {
     const DRAW = { width: 20, height: 20 };
     const ZOOM = 10;
     const FG_COLOR = 'blue';
-    let canvas = '';
+    let canvas = document.getElementById("canvas");
     let last = { x: 0, y: 0 };
     let [isDrawing, setIsDrawing] = useState(false);
 
@@ -23,14 +23,16 @@ const Canvas = () => {
         context.strokeStyle = FG_COLOR;
         context.lineWidth = 1;
         contextRef.current = context;
+        isDrawing = true;
+        setIsDrawing = true;
     }, []);
 
     const startDrawing = ({ nativeEvent }) => {
         // const { offsetX, offsetY } = nativeEvent;
-        var canvas = document.getElementById("canvas");
         last = eventCanvasCoord(canvas, nativeEvent);
         isDrawing = true;
         setIsDrawing = true;
+        // contextRef.current.beginPath();
         // contextRef.current.beginPath();
         // contextRef.current.moveTo(offsetX, offsetY);
         // contextRef.current.lineTo(offsetX, offsetY);
@@ -60,7 +62,7 @@ const Canvas = () => {
         // const { offsetX, offsetY } = nativeEvent;
         // contextRef.current.lineTo(offsetX, offsetY);
         // contextRef.current.stroke();
-        // nativeEvent.preventDefault();
+        nativeEvent.preventDefault();
     }
 
     const stopDrawing = ({ nativeEvent }) => {
@@ -95,7 +97,7 @@ const Canvas = () => {
             onMouseMove={draw}
             onMouseUp={stopDrawing}
             onMouseLeave={stopDrawing}>
-        </canvas>
+        </canvas >
     )
 }
 

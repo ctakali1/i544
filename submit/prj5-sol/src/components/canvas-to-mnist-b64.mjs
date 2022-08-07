@@ -1,7 +1,6 @@
 const canvasToMnistB64 = (canvasCtx) => {
   const aliased = readCanvas(canvasCtx);
   const anti = antiAlias(aliased);
-  console.log("anti ", anti)
   const mnist = mnistRecenter(anti);
   const buf = toArrayBuffer(mnist);
   const b64 = uint8ArrayToB64(buf);
