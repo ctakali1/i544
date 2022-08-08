@@ -11,3 +11,10 @@ Project 5 initiated
 6. handled exception and shown message in the UI.
 7. If classify is clicked while canvas is empty then message is shown to draw some digit.
 8. Before each classification, error message is removed.
+
+References:
+//https://stackblitz.com/edit/react-ehulbm?file=src%2FApp.js
+//https://stackoverflow.com/questions/52169194/drawing-a-straight-line-using-mouse-events-on-canvas-in-reactjs
+//https://reactjs.org/docs/handling-events.html
+//https://reactjs.org/tutorial/tutorial.html
+//https://medium.com/@pdx.lucasm/canvas-with-react-js-32e133c05258

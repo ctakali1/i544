@@ -79,7 +79,3 @@ export default function App(props) {
     </div>
   )
 }
-
-
-//https://stackblitz.com/edit/react-ehulbm?file=src%2FApp.js
-//
