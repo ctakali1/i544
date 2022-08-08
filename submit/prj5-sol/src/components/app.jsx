@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-// const { useState } = React;
+const useState = React;
 
 import makeKnnWsClient from './knn-ws-client.mjs';
 import canvasToMnistB64 from './canvas-to-mnist-b64.mjs';
 import Canvas from './Canvas'
 
-const DEFAULT_WS_URL = 'https://zdu.binghamton.edu:2345';
-
 export default function App(props) {
   //TODO
 
+  const DEFAULT_WS_URL = 'https://zdu.binghamton.edu:2345';
+  const [vari, setVari] = useState(DEFAULT_WS_URL);
   let caller = new makeKnnWsClient(DEFAULT_WS_URL);
 
   function ResetApp() {
@@ -60,13 +60,8 @@ export default function App(props) {
 
   return (
     <div>
-      {/* <div>
-        <input type="text" name="ws-url" id="ws-url" size="30" value={DEFAULT_WS_URL} />
-      </div> */}
-      <form id="url-form">
-        {/* <label for="ws=url">KNN Web Services URL</label> */}
-        <input id="ws-url" name="ws-url" size="30" value="https://zdu.binghamton.edu:2345" />
-      </form>
+      <label for="ws=url">KNN Web Services URL</label>
+      <input value={vari} type="text" name="ws-url" id="ws-url" size="30" onChange={(e) => setVari(e.target.value)} />
       <Canvas></Canvas>
       <div>
         <button onClick={ResetApp}>Reset</button>
@@ -83,3 +78,7 @@ export default function App(props) {
     </div>
   )
 }
+
+
+//https://stackblitz.com/edit/react-ehulbm?file=src%2FApp.js
+//
