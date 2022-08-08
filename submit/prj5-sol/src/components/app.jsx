@@ -17,16 +17,20 @@ export default function App(props) {
     var canvas = document.getElementById("canvas");
     var context = canvas.getContext('2d');
     context.clearRect(0, 0, 300, 300);
+    document.querySelector('#knn-label').innerHTML = "";
+    document.querySelector('#errors').innerHTML = "";
   }
 
   async function Classify() {
     try {
+      document.querySelector('#errors').innerHTML = "";
+      document.querySelector('#knn-label').innerHTML = "";
+      caller = new makeKnnWsClient(vari);
       var canvas = document.getElementById("canvas");
       var context = canvas.getContext('2d');
       const b64 = canvasToMnistB64(context);
       if (!(/[B-Z]/.test(b64))) {
         reportErrors({ errors: [{ message: 'please draw digit before classifying' }] });
-        // document.getElementById('errors').innerHTML = "please draw digit before classifying";
         return;
       }
       var id = (await (caller['classify'](b64))).id;
@@ -35,7 +39,6 @@ export default function App(props) {
     } catch (error) {
       document.getElementById('errors').innerHTML = `<li>${error}</li>`;
     }
-    // console.log("label ", label)
   }
 
   function onChangeWidth() {
@@ -46,8 +49,6 @@ export default function App(props) {
   }
 
   function updateUrl() {
-    // var canvas = document.getElementById("canvas");
-    // var context = canvas.getContext('2d');
     const buttonEl = document.getElementsByName('ws-url').value;
     alert(buttonEl);
   }
