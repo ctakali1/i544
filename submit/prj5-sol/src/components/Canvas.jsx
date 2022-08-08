@@ -34,6 +34,7 @@ const Canvas = () => {
         if (!isDrawing) {
             return;
         }
+        document.querySelector('#errors').innerHTML = "";
         var x = eventCanvasCoord(canvas, nativeEvent)['x'];
         var y = eventCanvasCoord(canvas, nativeEvent)['y'];
         contextRef.current.beginPath();

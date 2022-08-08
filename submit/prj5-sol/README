@@ -1,0 +1,13 @@
+Name:		Chaitanya Takalikar
+B-Number:	B00922838
+Email:		ctakali1@binghamton.edu
+
+Project 5 initiated
+1. Immitated all the functionalities from Project 4 JavaScript to Project 5 using React
+2. All Events handled(onMouseDown, onMouseMove, onMouseLeave,onMouseUp event, updated the last variables with the latest mouse traced variables)
+3. Web Services are being consumed successfully with proper result or error.
+4. CORS mode implemented.
+5. Knn labelling done. Digit shown in the classified field area. 
+6. handled exception and shown message in the UI.
+7. If classify is clicked while canvas is empty then message is shown to draw some digit.
+8. Before each classification, error message is removed.

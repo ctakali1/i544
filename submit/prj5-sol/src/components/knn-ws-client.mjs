@@ -6,7 +6,7 @@ export default function makeKnnWsClient(wsUrl) {
 
 class KnnWsClient {
   constructor(wsUrl) {
-    this.wsUrl=wsUrl;
+    this.wsUrl = wsUrl;
   }
 
   /** Given a base64 encoding b64Img of an MNIST compatible test
@@ -21,19 +21,20 @@ class KnnWsClient {
    *  error Result.
    */
   async classify(b64Img) {
-    if(b64Img==='') return;
+    if (b64Img === '') return;
     try {
-      const result=await
-      (await fetch(this.wsUrl+'/knn/images', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(b64Img)
-      })).json();
-      return result; 
+      const result = await
+        (await fetch(this.wsUrl + '/knn/images', {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(b64Img)
+        })).json();
+      return result;
     } catch (error) {
-      let resp=error.message;
+      let resp = error.message;
       throw resp;
     }
   }
@@ -53,10 +54,10 @@ class KnnWsClient {
    */
   async getImage(imageId) {
     try {
-      const res=await(await fetch(this.wsUrl+`/knn/labels/${imageId}`)).json();
-      return res; 
+      const res = await (await fetch(this.wsUrl + `/knn/labels/${imageId}`)).json();
+      return res;
     } catch (error) {
-      let resp=JSON.parse(error);
+      let resp = JSON.parse(error);
       throw resp;
     }
   }
