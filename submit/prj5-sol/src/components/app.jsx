@@ -10,7 +10,7 @@ export default function App(props) {
   //TODO
 
   const DEFAULT_WS_URL = 'https://zdu.binghamton.edu:2345';
-  const [vari, setVari] = useState(DEFAULT_WS_URL);
+  const [variable, setVariable] = useState(DEFAULT_WS_URL);
   let caller = new makeKnnWsClient(DEFAULT_WS_URL);
 
   function ResetApp() {
@@ -25,7 +25,7 @@ export default function App(props) {
     try {
       document.querySelector('#errors').innerHTML = "";
       document.querySelector('#knn-label').innerHTML = "";
-      caller = new makeKnnWsClient(vari);
+      caller = new makeKnnWsClient(variable);
       var canvas = document.getElementById("canvas");
       var context = canvas.getContext('2d');
       const b64 = canvasToMnistB64(context);
@@ -62,7 +62,7 @@ export default function App(props) {
   return (
     <div>
       <label for="ws=url">KNN Web Services URL</label>
-      <input value={vari} type="text" name="ws-url" id="ws-url" size="30" onChange={(e) => setVari(e.target.value)} />
+      <input value={variable} type="text" name="ws-url" id="ws-url" size="30" onChange={(e) => setVariable(e.target.value)} />
       <Canvas></Canvas>
       <div>
         <button onClick={ResetApp}>Reset</button>
